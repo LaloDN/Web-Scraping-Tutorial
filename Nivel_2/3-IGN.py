@@ -28,7 +28,7 @@ class IGNCrawler(CrawlSpider):
     
     custom_settings = {
         'USER_AGENT' : "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36",
-        'CLOSESPIDER_PAGECOUNT': 75 
+        'CLOSESPIDER_PAGECOUNT': 100
     }
 
     #Recuerda que allowed domains es para que el spider no de click en vínculos que nos lleven a otros lados
@@ -38,7 +38,7 @@ class IGNCrawler(CrawlSpider):
     download_delay = 2
 
     #Aquí empezará la búsqueda
-    start_urls=['https://latam.ign.com/se/?q=halo&order_by=&model=article']
+    start_urls=['https://latam.ign.com/se/?q=crash&order_by=&model=article']
 
     """
     Para este ejercicio necesitamos 5 reglas:
@@ -59,21 +59,24 @@ class IGNCrawler(CrawlSpider):
         #Paginación
         Rule(
             LinkExtractor(
-                allow=r'&page=\d+' #Recuerda que el \d+ significa un número cualquiera
+                allow=r'page=\d+' #Recuerda que el \d+ significa un número cualquiera
             ), follow=True
         ),
+       
         #Noticias
         Rule(
             LinkExtractor(
                 allow=r'/news/'
             ), follow=True, callback='parse_news'
         ),
+
         #Reseñas
         Rule(
             LinkExtractor(
                 allow=r'/review/'
             ), follow=True, callback='parse_reivews'
         ),
+        
         #Vídeos
         Rule(
             LinkExtractor(
@@ -83,23 +86,24 @@ class IGNCrawler(CrawlSpider):
     )
 
 
-def parse_news(self, response):
-    item = ItemLoader(Noticia(),response)
-    item.add_xpath('titulo','//h1[@id="id_title"]/text()')
-    item.add_xpath('texto','//div[@id="id_text"]//*/text()') #El asterísco significa cualquier tag
+    def parse_news(self, response):
+        item = ItemLoader(Noticia(),response)
+        item.add_xpath('titulo','//h1[@id="id_title"]/text()')
+        item.add_xpath('texto','//div[@id="id_text"]//*/text()') #El asterísco significa cualquier tag
 
-    yield item.load_item()
+        yield item.load_item()
 
-def parse_videos(self, response):
-    item = ItemLoader(Video(),response)
-    item.add_xpath('titulo','//h1/text()')
-    item.add_xpath('calificacion','(//span[@class="side-wrapper side-wrapper hexagon-content"])[1]/div/text()')
+    def parse_reviews(self, response):
+        item = ItemLoader(Reseña(),response)
+        item.add_xpath('titulo','//h1/text()')
+        item.add_xpath('calificacion','(//span[@class="side-wrapper side-wrapper hexagon-content"])[1]/div/text()')
 
-    yield item.load_item()
+        yield item.load_item()
 
-def parse_reviews(self, response):
-    item = ItemLoader(Reseña(),response)
-    item.add_xpath('titulo','//h1/text()')
-    item.add_xpath('fecha','//span[@class="publish-date"]/text()')
+    def parse_videos(self, response):
+        item = ItemLoader(Video(),response)
+        item.add_xpath('titulo','//h1/text()')
+        item.add_xpath('fecha','//span[@class="publish-date"]/text()')
 
-    yield item.load_item()
+        yield item.load_item()
+
